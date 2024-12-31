@@ -93,6 +93,7 @@ app.get('/purchased', async (req, res) => {
     }
 });
 
+
 app.get('/inventory', async (req, res) => {
   try {
     const sales = await Sale.find();
@@ -102,25 +103,31 @@ app.get('/inventory', async (req, res) => {
     const inventory = {};
 
     purchases.forEach(purchase => {
-      if (!inventory[purchase.itemName]) {
-        inventory[purchase.itemName] = {
-          itemName: purchase.itemName,
-          quantity: 0,
-          bestBefore: purchase.bestBefore
-        };
+      // Check if itemName is not blank
+      if (purchase.itemName && purchase.itemName.trim() !== "") {
+        if (!inventory[purchase.itemName]) {
+          inventory[purchase.itemName] = {
+            itemName: purchase.itemName,
+            quantity: 0,
+            bestBefore: purchase.bestBefore
+          };
+        }
+        inventory[purchase.itemName].quantity += purchase.quantity;
       }
-      inventory[purchase.itemName].quantity += purchase.quantity;
     });
 
     sales.forEach(sale => {
       sale.itemsSold.forEach(item => {
-        if (!inventory[item.itemName]) {
-          inventory[item.itemName] = {
-            itemName: item.itemName,
-            quantity: 0
-          };
+        // Check if itemName is not blank
+        if (item.itemName && item.itemName.trim() !== "") {
+          if (!inventory[item.itemName]) {
+            inventory[item.itemName] = {
+              itemName: item.itemName,
+              quantity: 0
+            };
+          }
+          inventory[item.itemName].quantity -= item.quantity;
         }
-        inventory[item.itemName].quantity -= item.quantity;
       });
     });
 
@@ -133,3 +140,4 @@ app.get('/inventory', async (req, res) => {
 
 const PORT = process.env.PORT || 5010;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
